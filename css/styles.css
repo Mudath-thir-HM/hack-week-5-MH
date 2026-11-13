@@ -441,8 +441,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .kiosk-close {
   width: 44px; height: 44px; margin-left: 4px;
   display: grid; place-items: center; border-radius: 50%;
-  border: 1px solid rgba(241,234,216,.22); color: rgba(241,234,216,.6);
-  opacity: .55; transition: opacity .2s, background .2s, color .2s, border-color .2s;
+  border: 1px solid rgba(241,234,216,.3); color: rgba(241,234,216,.75);
+  background: rgba(7,18,30,.55); backdrop-filter: blur(3px);
+  opacity: .7; transition: opacity .2s, background .2s, color .2s, border-color .2s;
 }
 .kiosk-close svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.6; }
 .kiosk-close:hover { opacity: 1; background: var(--red); border-color: var(--red); color: #FFF3E4; }
