@@ -282,7 +282,6 @@
 
   function openGallery(opts) {
     galState = { course: opts.course || 'all', best: !!opts.best, allied: !!opts.allied, decade: 'all' };
-    galTitle.textContent = opts.title || 'Alumni';
     renderGallery();
     gallery.classList.remove('is-hidden');
     gsap.fromTo('.gcard', { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: .5, stagger: .022, ease: 'power2.out' });
@@ -321,7 +320,16 @@
     }).join('');
 
     galFoot.innerHTML = '<span>' + list.length + ' on this wall</span><span>Touch a name for the full record</span>';
+    galList = list.map(function (p) { return p.id; });
+
+    /* the heading follows whatever is actually on screen */
+    galTitle.textContent = galState.allied ? 'Allied officers'
+      : galState.best ? 'Best participants'
+      : galState.course === 'jc' ? 'Junior Course'
+      : galState.course === 'sc' ? 'Senior Course'
+      : 'Alumni';
   }
+  var galList = [];
 
   galChips.addEventListener('click', function (e) {
     var b = e.target.closest('.chip'); if (!b) return;
@@ -336,15 +344,27 @@
   document.getElementById('gal-close').addEventListener('click', closeGallery);
   galGrid.addEventListener('click', function (e) {
     var b = e.target.closest('.gcard'); if (!b) return;
-    openProfile(b.getAttribute('data-person'));
+    openProfile(b.getAttribute('data-person'), galList);
   });
 
   /* ----------------------------------------------------------------- profile */
   var profile = document.getElementById('profile');
   var profWrap = document.getElementById('prof-wrap');
 
-  function openProfile(id) {
+  var profList = [], profIndex = 0;
+
+  function defaultList() {
+    return PEOPLE.filter(function (p) {
+      return courseFilter === 'all' || p.course === courseFilter;
+    }).sort(function (a, b) { return b.year - a.year; }).map(function (p) { return p.id; });
+  }
+
+  function openProfile(id, list) {
     var p = byId[id]; if (!p) return;
+    profList = (list && list.length) ? list.slice() : defaultList();
+    profIndex = Math.max(0, profList.indexOf(id));
+    var nextId = profList[(profIndex + 1) % profList.length];
+    var nextName = nextId && nextId !== id ? byId[nextId].name : '';
     profWrap.innerHTML =
       '<div class="prof-left">' +
         '<div class="prof-plate">' +
@@ -353,6 +373,9 @@
         '<div class="prof-rank-type">' + p.rank + ' — rank insignia</div>' +
       '</div>' +
       '<div class="prof-right">' +
+        (nextName ? '<button class="prof-next" id="prof-next">Next' +
+          '<svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg>' +
+          '<span>' + nextName + '</span></button>' : '') +
         '<div class="prof-kicker">' + courseName(p.course) + ' · ' + p.year + '</div>' +
         '<h2 class="prof-name">' + p.name + '</h2>' +
         '<div class="prof-meta"><span><b>' + p.rank + '</b></span><span>' + p.service + '</span><span>' + p.country + '</span></div>' +
@@ -369,12 +392,31 @@
     gsap.fromTo('.prof-left', { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: .7, ease: 'power3.out' });
     gsap.fromTo('.prof-right > *', { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: .6, stagger: .06, ease: 'power2.out', delay: .1 });
     document.getElementById('prof-close').onclick = function () { profile.classList.add('is-hidden'); };
+    var nb = document.getElementById('prof-next');
+    if (nb) nb.onclick = function (ev) {
+      ev.stopPropagation();
+      var nid = profList[(profIndex + 1) % profList.length];
+      if (nid && nid !== p.id) openProfile(nid, profList);
+    };
   }
 
   document.getElementById('timeline').addEventListener('click', function (e) {
     var c = e.target.closest('.acard'); if (!c) return;
-    openProfile(c.getAttribute('data-person'));
+    openProfile(c.getAttribute('data-person'), defaultList());
   });
+
+  function closeKiosk() {
+    try { window.open('', '_self'); window.close(); } catch (err) { /* ignored */ }
+    setTimeout(function () {
+      if (window.closed !== true) {
+        var hint = document.getElementById('kiosk-hint');
+        gsap.fromTo(hint, { opacity: 0, y: -6 }, { opacity: 1, y: 0, duration: .3 });
+        gsap.to(hint, { opacity: 0, duration: .4, delay: 5 });
+      }
+    }, 420);
+  }
+  var ck = document.getElementById('close-app');
+  if (ck) ck.addEventListener('click', function (e) { e.stopPropagation(); closeKiosk(); });
 
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
