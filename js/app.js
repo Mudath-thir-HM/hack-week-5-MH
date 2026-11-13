@@ -154,7 +154,7 @@
   var dragging = false, startX = 0, startTrack = 0, moved = 0;
 
   function pointerDown(e) {
-    if (e.target.closest('.nav-btn, .chip, .round, .tick, .acard, .gcard')) return;
+    if (e.target.closest('.nav-btn, .chip, .round, .tick, .acard, .gcard, .kiosk-close, .exit-panel')) return;
     dragging = true; moved = 0;
     startX = (e.touches ? e.touches[0].clientX : e.clientX);
     startTrack = gsap.getProperty(track, 'x');
@@ -187,11 +187,13 @@
   ['pointerdown', 'touchstart'].forEach(function (ev) {
     document.getElementById('timeline').addEventListener(ev, pointerDown, { passive: true });
   });
+  /* move/up go on window: pointer capture on #stage retargets them away from
+     #timeline, so listening there would never see the release */
   ['pointermove', 'touchmove'].forEach(function (ev) {
-    document.getElementById('timeline').addEventListener(ev, pointerMove, { passive: true });
+    window.addEventListener(ev, pointerMove, { passive: true });
   });
   ['pointerup', 'pointercancel', 'touchend'].forEach(function (ev) {
-    document.getElementById('timeline').addEventListener(ev, pointerUp, { passive: true });
+    window.addEventListener(ev, pointerUp, { passive: true });
   });
 
   document.querySelectorAll('[data-step]').forEach(function (b) {
@@ -444,16 +446,37 @@
     openProfile(c.getAttribute('data-person'), defaultList());
   });
 
+  /* Kiosk Edge refuses window.close() on a window it did not open, so the page
+     flags its own title; tools/kiosk-watch.ps1 (started by run.bat) watches for
+     that flag and ends the kiosk process. Both routes are tried. */
   function closeKiosk() {
+    var panel = document.getElementById('exit-panel');
+    if (panel) panel.classList.add('is-on');
+
+    /* the flag is what run.bat's watcher reads; window.close() covers the
+       case where Edge treats the kiosk window as script-owned */
+    document.title = 'KIOSK_EXIT';
     try { window.open('', '_self'); window.close(); } catch (err) { /* ignored */ }
+
     setTimeout(function () {
-      if (window.closed !== true) {
-        var hint = document.getElementById('kiosk-hint');
+      if (window.closed === true) return;
+      var hint = document.getElementById('kiosk-hint');
+      if (hint) {
         gsap.fromTo(hint, { opacity: 0, y: -6 }, { opacity: 1, y: 0, duration: .3 });
-        gsap.to(hint, { opacity: 0, duration: .4, delay: 5 });
+        gsap.to(hint, { opacity: 0, duration: .4, delay: 7 });
       }
-    }, 420);
+    }, 900);
   }
+
+  function cancelExit() {
+    var panel = document.getElementById('exit-panel');
+    if (panel) panel.classList.remove('is-on');
+    document.title = 'Alumni — AFCSC Jaji';
+  }
+  var exBack = document.getElementById('exit-back');
+  if (exBack) exBack.addEventListener('click', cancelExit);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') cancelExit(); });
+
   var ck = document.getElementById('close-app');
   if (ck) ck.addEventListener('click', function (e) { e.stopPropagation(); closeKiosk(); });
 
@@ -468,6 +491,19 @@
   });
 
   /* -------------------------------------------------------------------- boot */
+  if (/[?&]test=flag/.test(location.search)) {
+    setTimeout(function () { document.title = 'KIOSK_EXIT'; }, 800);
+  }
+
+  if (/[?&]test=close/.test(location.search)) {
+    setTimeout(function () {
+      document.getElementById('close-app').click();
+      setTimeout(function () {
+        document.documentElement.setAttribute('data-close', document.title);
+      }, 250);
+    }, 400);
+  }
+
   if (/[?&]test=navhover/.test(location.search)) {
     setTimeout(function () {
       document.getElementById('nav-open').click();
