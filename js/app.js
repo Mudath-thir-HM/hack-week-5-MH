@@ -25,11 +25,18 @@
     return name.split(' ').filter(function (w) { return w.length > 2; })
       .slice(0, 2).map(function (w) { return w[0]; }).join('');
   }
+  /* Maj has no insignia in the supplied set (major_general.png is a two-star
+     general's board, a different rank) — so it falls back to a typographic
+     plate rather than borrowing the wrong badge. */
+  function monoText(p) {
+    if (p.rank === 'Maj') return 'MAJOR';
+    return p.rank.replace(' (N)', '').toUpperCase();
+  }
   function rankPlate(p, cls) {
     if (p.rankImg) {
       return '<div class="' + (cls || 'rank-img') + '"><img src="' + p.rankImg + '" alt=""></div>';
     }
-    return '<div class="' + (cls || 'rank-img') + '"><span class="mono">' + p.rank.replace(' (N)', '') + '</span></div>';
+    return '<div class="' + (cls || 'rank-img') + '"><span class="mono">' + monoText(p) + '</span></div>';
   }
   function courseName(id) { return id === 'sc' ? 'Senior Course' : 'Junior Course'; }
   function personCard(p) {
@@ -305,7 +312,7 @@
 
     galGrid.innerHTML = list.map(function (p) {
       return '<button class="gcard" data-person="' + p.id + '">' +
-        '<div class="gi">' + (p.rankImg ? '<img src="' + p.rankImg + '" alt="">' : '<span class="mono">' + p.rank + '</span>') + '</div>' +
+        '<div class="gi">' + (p.rankImg ? '<img src="' + p.rankImg + '" alt="">' : '<span class="mono">' + monoText(p) + '</span>') + '</div>' +
         '<div class="gn">' + p.name + '</div>' +
         '<div class="gm">' + p.rank + ' · ' + courseName(p.course) + ' · ' + p.country + '</div>' +
         '<div class="gm" style="color:var(--gold)">' + p.year + '</div>' +
@@ -341,7 +348,7 @@
     profWrap.innerHTML =
       '<div class="prof-left">' +
         '<div class="prof-plate">' +
-          (p.rankImg ? '<img src="' + p.rankImg + '" alt="">' : '<span class="mono">' + p.rank + '</span>') +
+          (p.rankImg ? '<img src="' + p.rankImg + '" alt="">' : '<span class="mono">' + monoText(p) + '</span>') +
         '</div>' +
         '<div class="prof-rank-type">' + p.rank + ' — rank insignia</div>' +
       '</div>' +
