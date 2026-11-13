@@ -228,12 +228,37 @@
   /* --------------------------------------------------------------------- nav */
   var nav = document.getElementById('nav');
   var CHAPTERS = [
-    { no: '01', label: 'The College', note: '1978 — today', act: function () { setActive(0); } },
-    { no: '02', label: 'Junior Course', note: 'Since 1979', act: function () { openGallery({ course: 'jc', title: 'Junior Course' }); } },
-    { no: '03', label: 'Senior Course', note: 'Since 1978', act: function () { openGallery({ course: 'sc', title: 'Senior Course' }); } },
-    { no: '04', label: 'Best participants', note: 'Each course', act: function () { openGallery({ best: true, title: 'Best participants' }); } },
-    { no: '05', label: 'Allied officers', note: '30+ countries', act: function () { openGallery({ allied: true, title: 'Allied officers' }); } }
+    { no: '01', label: 'The College', note: '1978 — today', img: 'hall', cap: 'The College · Jaji',
+      act: function () { setActive(0); } },
+    { no: '02', label: 'Junior Course', note: 'Since 1979', img: 'line', cap: 'Junior Course · syndicate room',
+      act: function () { openGallery({ course: 'jc', title: 'Junior Course' }); } },
+    { no: '03', label: 'Senior Course', note: 'Since 1978', img: 'podium', cap: 'Senior Course · the lectern',
+      act: function () { openGallery({ course: 'sc', title: 'Senior Course' }); } },
+    { no: '04', label: 'Best participants', note: 'Each course', img: 'cockpit', cap: 'Best participants · the reward',
+      act: function () { openGallery({ best: true, title: 'Best participants' }); } },
+    { no: '05', label: 'Allied officers', note: '30+ countries', img: 'handshake', cap: 'Allied officers · partner air forces',
+      act: function () { openGallery({ allied: true, title: 'Allied officers' }); } }
   ];
+
+  /* the photograph beside the list follows whichever chapter is under the finger */
+  var navImgs = [document.querySelector('.nav-photo .np-a'), document.querySelector('.nav-photo .np-b')];
+  var navCap = document.getElementById('nav-photo-cap');
+  var navFlip = 0, navCurrent = 'hall';
+
+  function navPhoto(slug, cap) {
+    if (!slug || slug === navCurrent) return;
+    navCurrent = slug;
+    var front = navImgs[navFlip % 2], back = navImgs[(navFlip + 1) % 2];
+    back.src = 'assets/img/cards/' + slug + '.jpg';
+    var swap = function () {
+      back.classList.add('is-on');
+      front.classList.remove('is-on');
+      navFlip++;
+      navCap.textContent = cap;
+    };
+    if (back.complete) swap();
+    else back.onload = swap;
+  }
 
   var navList = document.getElementById('nav-list');
   navList.innerHTML = '<div class="nav-head">Chapters</div>' + CHAPTERS.map(function (c, i) {
@@ -241,6 +266,8 @@
   }).join('');
 
   function openNav() {
+    navCurrent = '';
+    navPhoto(CHAPTERS[0].img, CHAPTERS[0].cap);
     nav.classList.remove('is-hidden');
     var tl = gsap.timeline();
     gsap.set('.nav-photo', { opacity: 0, x: -40, rotate: -6 });
@@ -263,6 +290,17 @@
       .to('.nav-photo', { opacity: 0, x: -30, duration: .45 }, .05)
       .to('.nav-close', { opacity: 0, scale: .85, duration: .3 }, 0);
   }
+
+  navList.addEventListener('mouseover', function (e) {
+    var b = e.target.closest('.nav-item'); if (!b) return;
+    var ch = CHAPTERS[parseInt(b.getAttribute('data-ch'), 10)];
+    navPhoto(ch.img, ch.cap);
+  });
+  navList.addEventListener('focusin', function (e) {
+    var b = e.target.closest('.nav-item'); if (!b) return;
+    var ch = CHAPTERS[parseInt(b.getAttribute('data-ch'), 10)];
+    navPhoto(ch.img, ch.cap);
+  });
 
   document.getElementById('nav-open').addEventListener('click', openNav);
   document.getElementById('nav-close').addEventListener('click', function () { closeNav(); });
@@ -430,6 +468,17 @@
   });
 
   /* -------------------------------------------------------------------- boot */
+  if (/[?&]test=navhover/.test(location.search)) {
+    setTimeout(function () {
+      document.getElementById('nav-open').click();
+      setTimeout(function () {
+        var it = document.querySelectorAll('.nav-item')[3];
+        it.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+        document.documentElement.setAttribute('data-navhover', document.getElementById('nav-photo-cap').textContent);
+      }, 600);
+    }, 300);
+  }
+
   if (/[?&]test=nav/.test(location.search)) {
     setTimeout(function () {
       try {
