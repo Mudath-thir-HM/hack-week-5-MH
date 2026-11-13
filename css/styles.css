@@ -456,3 +456,5 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   opacity: 0; pointer-events: none;
 }
 .kiosk-hint b { color: var(--gold-hi); font-weight: 600; }
+
+.gal-grid.is-sparse { align-content: center; }

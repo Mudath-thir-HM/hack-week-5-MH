@@ -321,6 +321,7 @@
 
     galFoot.innerHTML = '<span>' + list.length + ' on this wall</span><span>Touch a name for the full record</span>';
     galList = list.map(function (p) { return p.id; });
+    galGrid.classList.toggle('is-sparse', list.length <= 10);
 
     /* the heading follows whatever is actually on screen */
     galTitle.textContent = galState.allied ? 'Allied officers'

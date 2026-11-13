@@ -191,7 +191,7 @@ const ALUMNI = {
       "best": false,
       "reason": "Syndicate lead in the bi-service Air-Land exercise.",
       "achievements": "Syndicate lead, Air-Land exercise; Commended for clear staff writing",
-      "rankImg": null,
+      "rankImg": "assets/img/ranks/maj-gen.png",
       "milestones": [
         {
           "year": "2012",
@@ -284,7 +284,7 @@ const ALUMNI = {
       "best": false,
       "reason": "Developed a targeting checklist later shared with the next set.",
       "achievements": "Targeting checklist adopted by later sets",
-      "rankImg": null,
+      "rankImg": "assets/img/ranks/maj-gen.png",
       "milestones": [
         {
           "year": "2005",
@@ -377,7 +377,7 @@ const ALUMNI = {
       "best": true,
       "reason": "Best participant, Junior Course 2006.",
       "achievements": "Best Participant, Junior Course 2006",
-      "rankImg": null,
+      "rankImg": "assets/img/ranks/maj-gen.png",
       "milestones": [
         {
           "year": "1997",
